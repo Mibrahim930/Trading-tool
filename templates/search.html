@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Search - Market Monitor{% endblock %}
+{% block content %}
+  <div class="page-header reveal">
+    <div class="page-header-text">
+      <h1>News Search</h1>
+      <p class="page-subtitle">Look up anything in your full news history. Tap any headline for the full breakdown.</p>
+    </div>
+    <span class="hint">Showing up to {{ result_limit }} results</span>
+  </div>
+
+  <form method="get" action="{{ url_for('search') }}" class="filter-bar reveal" style="transition-delay:60ms">
+    <label>Keyword</label>
+    <input type="text" name="q" value="{{ q }}" placeholder="e.g. Fed, oil, CPI" style="width:220px">
+
+    <label>Impact</label>
+    <select name="impact">
+      <option value="">Any</option>
+      {% for opt in ['High', 'Medium', 'Low'] %}
+      <option value="{{ opt }}" {{ 'selected' if impact == opt }}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Direction</label>
+    <select name="direction">
+      <option value="">Any</option>
+      {% for opt in ['Bullish', 'Bearish', 'Neutral'] %}
+      <option value="{{ opt }}" {{ 'selected' if direction == opt }}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Affects</label>
+    <select name="affects">
+      <option value="">Any</option>
+      {% for opt in ['ES', 'NQ', 'Both'] %}
+      <option value="{{ opt }}" {{ 'selected' if affects == opt }}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+
+    <label>From</label>
+    <input type="date" name="date_from" value="{{ date_from }}">
+
+    <label>To</label>
+    <input type="date" name="date_to" value="{{ date_to }}">
+
+    <button type="submit">Search</button>
+  </form>
+
+  <table class="reveal news-table" style="transition-delay:120ms">
+    <thead>
+      <tr>
+        <th style="width:130px">Published</th>
+        <th style="width:50px">Impact</th>
+        <th style="width:70px">Direction</th>
+        <th style="width:50px">Affects</th>
+        <th>Headline</th>
+        <th style="width:38%">Reason</th>
+        <th style="width:16px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in news %}
+      <tr class="clickable-row {{ 'irrelevant' if not item['relevant'] }}" data-href="{{ url_for('news_detail', news_id=item['id']) }}" tabindex="0">
+        <td class="nowrap">{{ item['published_at']|fmt_time }}</td>
+        <td><span class="tag tag-{{ item['impact']|lower }}">{{ item['impact']|upper }}</span></td>
+        <td><span class="tag tag-{{ item['direction']|lower }}">{{ item['direction']|upper }}</span></td>
+        <td><span class="instrument">{{ item['affects']|upper }}</span></td>
+        <td class="headline-cell">{{ item['headline'] }}</td>
+        <td class="dim-cell">{{ item['reason'] }}</td>
+        <td class="row-chevron">&rsaquo;</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7">No matching articles.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

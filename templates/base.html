@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}ES/NQ Market Monitor{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark">M</span>
+      Market Monitor
+      <span class="brand-sub">&nbsp;ES / NQ</span>
+    </div>
+    <nav>
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint in ('dashboard', 'news_detail') }}">Dashboard</a>
+      <a href="{{ url_for('search') }}" class="{{ 'active' if request.endpoint == 'search' }}">Search</a>
+      <a href="{{ url_for('journal_entries') }}" class="{{ 'active' if request.endpoint == 'journal_entries' }}">Trade Entries</a>
+      <a href="{{ url_for('journal') }}" class="{{ 'active' if request.endpoint in ('journal', 'journal_stat') }}">Trade Journal</a>
+      <a href="{{ url_for('accounts_page') }}" class="{{ 'active' if request.endpoint == 'accounts_page' }}">Accounts</a>
+    </nav>
+    {% if active_account %}
+    <a href="{{ url_for('accounts_page') }}" class="active-account-pill">
+      <span class="active-account-dot"></span>{{ active_account.name }}
+    </a>
+    {% endif %}
+  </div>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

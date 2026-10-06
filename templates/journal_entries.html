@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Trade Entries - Market Monitor{% endblock %}
+{% block content %}
+  <div class="page-header reveal">
+    <div class="page-header-text">
+      <h1>Trade Entries</h1>
+      <p class="page-subtitle">Log trades and capture timestamped notes as they unfold. Nothing is required &mdash; fill in what you know, edit it later. <a href="{{ url_for('journal') }}">View the Trade Journal &rarr;</a></p>
+    </div>
+  </div>
+
+  {% if not active_account %}
+  <div class="empty-state reveal" style="margin-bottom:24px">
+    No active account yet &mdash; <a href="{{ url_for('accounts_page') }}">create one</a> to track balance against real starting capital.
+  </div>
+  {% endif %}
+
+  <section class="entry-form-card reveal" style="transition-delay:60ms">
+    <h2>New Trade</h2>
+    <form method="post" action="{{ url_for('journal_new') }}" class="entry-form">
+      <div class="field-group">
+        <label class="field-label">Date</label>
+        <input type="date" name="entry_date">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Symbol</label>
+        <select name="symbol">
+          <option value="">&mdash;</option>
+          <option value="ES">ES</option>
+          <option value="NQ">NQ</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Side</label>
+        <select name="side">
+          <option value="">&mdash;</option>
+          <option value="long">Long</option>
+          <option value="short">Short</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Contracts</label>
+        <input type="number" name="contracts" min="1" placeholder="e.g. 3">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Entry Price</label>
+        <input type="number" step="0.01" name="entry_price" placeholder="0.00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Exit Price</label>
+        <input type="number" step="0.01" name="exit_price" placeholder="0.00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">P&amp;L</label>
+        <input type="number" step="0.01" name="pnl" placeholder="e.g. -125.00">
+      </div>
+      <div class="field-group field-group-wide">
+        <label class="field-label">Opening Note (optional)</label>
+        <input type="text" name="notes" placeholder="What's the setup / thesis?">
+      </div>
+      <button type="submit" class="entry-submit">Log Entry</button>
+    </form>
+  </section>
+
+  <section class="reveal" style="transition-delay:120ms">
+    <h2 class="section-title">Open &amp; Recent Trades</h2>
+    <div class="trade-cards">
+      {% for t in trades %}
+      <div class="trade-card">
+        <div class="trade-card-top">
+          <span class="trade-symbol-badge {{ 'side-' + t.side if t.side else '' }}">{{ t.symbol or 'Unspecified' }}{% if t.side %} &middot; {{ t.side|upper }}{% endif %}</span>
+          {% if t.pnl is none %}
+          <span class="trade-status-open">OPEN</span>
+          {% endif %}
+          <span class="trade-pnl {{ 'pos' if t.pnl and t.pnl > 0 else ('neg' if t.pnl and t.pnl < 0 else '') }}">
+            {{ '$%.2f'|format(t.pnl) if t.pnl is not none else '—' }}
+          </span>
+        </div>
+
+        <div class="trade-card-meta">
+          <span>{{ t.contracts if t.contracts is not none else '—' }} contracts</span>
+          <span>Entry {{ t.entry_price if t.entry_price is not none else '—' }} @ {{ t.entry_time|fmt_clock }}</span>
+          {% if t.exit_price is not none or t.exit_time is not none %}
+          <span>Exit {{ t.exit_price if t.exit_price is not none else '—' }} @ {{ t.exit_time|fmt_clock }}</span>
+          {% endif %}
+          {% if t.duration_seconds %}
+          <span>{{ t.duration_seconds|fmt_duration }}</span>
+          {% endif %}
+        </div>
+
+        {% if t.timeline %}
+        <div class="trade-timeline">
+          {% for note in t.timeline %}
+          <div class="timeline-entry">
+            <span class="timeline-dot"></span>
+            <span class="timeline-time">{{ note.created_at|fmt_clock }}</span>
+            <span class="timeline-note">{{ note.note }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="trade-card-actions">
+          <form method="post" action="{{ url_for('journal_note', trade_id=t.id) }}" class="note-form">
+            <input type="text" name="note" placeholder="Add a timestamped note&hellip;" required>
+            <button type="submit">Add Note</button>
+          </form>
+          {% if t.pnl is none %}
+          <form method="post" action="{{ url_for('journal_close', trade_id=t.id) }}" class="close-form">
+            <input type="number" step="0.01" name="exit_price" placeholder="Exit price">
+            <input type="number" step="0.01" name="pnl" placeholder="or P&amp;L">
+            <button type="submit" class="close-btn">Close Trade</button>
+          </form>
+          {% endif %}
+        </div>
+
+        <details class="trade-edit">
+          <summary>Edit trade</summary>
+          <form method="post" action="{{ url_for('journal_edit', trade_id=t.id) }}" class="edit-form">
+            <div class="field-group">
+              <label class="field-label">Entry Date</label>
+              <input type="date" name="entry_date" value="{{ t.entry_time|fmt_date if t.entry_time else '' }}">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Symbol</label>
+              <select name="symbol">
+                <option value="" {{ 'selected' if not t.symbol }}>&mdash;</option>
+                <option value="ES" {{ 'selected' if t.symbol == 'ES' }}>ES</option>
+                <option value="NQ" {{ 'selected' if t.symbol == 'NQ' }}>NQ</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Side</label>
+              <select name="side">
+                <option value="" {{ 'selected' if not t.side }}>&mdash;</option>
+                <option value="long" {{ 'selected' if t.side == 'long' }}>Long</option>
+                <option value="short" {{ 'selected' if t.side == 'short' }}>Short</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Contracts</label>
+              <input type="number" name="contracts" min="1" value="{{ t.contracts if t.contracts is not none else '' }}">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Entry Price</label>
+              <input type="number" step="0.01" name="entry_price" value="{{ t.entry_price if t.entry_price is not none else '' }}">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Exit Date</label>
+              <input type="date" name="exit_date" value="{{ t.exit_time|fmt_date if t.exit_time else '' }}">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Exit Price</label>
+              <input type="number" step="0.01" name="exit_price" value="{{ t.exit_price if t.exit_price is not none else '' }}">
+            </div>
+            <div class="field-group">
+              <label class="field-label">P&amp;L</label>
+              <input type="number" step="0.01" name="pnl" value="{{ t.pnl_override if t.pnl_override is not none else '' }}">
+            </div>
+            <button type="submit" class="entry-submit">Save Changes</button>
+          </form>
+        </details>
+      </div>
+      {% else %}
+      <div class="empty-state">No trades logged yet.</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

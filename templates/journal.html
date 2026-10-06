@@ -1,0 +1,176 @@
+﻿{% extends "base.html" %}
+{% block title %}Trade Journal - Market Monitor{% endblock %}
+{% block content %}
+<div class="story-scroll">
+
+  <section class="story-intro">
+    <div class="story-intro-inner reveal-scale">
+      <div class="story-eyebrow">Trade Journal</div>
+      <h1 class="story-intro-title">Your trading,<br>at a glance.</h1>
+      <p class="story-intro-sub">Scroll to walk through every number that matters. Tap any stat, any time, for the full picture.</p>
+      <div class="scroll-cue">Scroll<span class="scroll-cue-arrow">&darr;</span></div>
+    </div>
+  </section>
+
+  {% if stats.total_trades == 0 %}
+  <section class="story-intro">
+    <div class="story-intro-inner reveal-scale">
+      <p class="story-intro-sub">No closed trades yet &mdash; log and close a trade in <a href="{{ url_for('journal_entries') }}">Trade Entries</a> to see your journal come to life.</p>
+    </div>
+  </section>
+  {% else %}
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='balance') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Account</div>
+        <div class="story-stat-value {{ 'pos' if stats.total_pnl > 0 else ('neg' if stats.total_pnl < 0 else '') }}" data-count="{{ stats.account_balance }}" data-prefix="$" data-decimals="2">$0.00</div>
+        <div class="story-stat-label">Account Balance</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="balance-curve"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='pnl') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Performance</div>
+        <div class="story-stat-value {{ 'pos' if stats.total_pnl > 0 else ('neg' if stats.total_pnl < 0 else '') }}" data-count="{{ stats.total_pnl }}" data-prefix="$" data-decimals="2">$0.00</div>
+        <div class="story-stat-label">Total P&amp;L</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="pnl-equity"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='winrate') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Consistency</div>
+        <div class="story-stat-value" data-count="{{ stats.win_rate }}" data-suffix="%" data-decimals="0">0%</div>
+        <div class="story-stat-label">Win Rate</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="winrate-bars"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='trades') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Activity</div>
+        <div class="story-stat-value" data-count="{{ stats.total_trades }}" data-decimals="0">0</div>
+        <div class="story-stat-label">Total Trades</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="trades-symbol"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='days') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Rhythm</div>
+        <div class="story-stat-value" data-count="{{ stats.days_traded }}" data-decimals="0">0</div>
+        <div class="story-stat-label">Days Traded</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="days-daily"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='avgtrade') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Edge</div>
+        <div class="story-stat-value {{ 'pos' if stats.profit_factor >= 1 else 'neg' }}" data-count="{{ stats.profit_factor }}" data-decimals="2">0.00</div>
+        <div class="story-stat-label">Profit Factor</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="avgtrade-bars"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <a class="stat-story" href="{{ url_for('journal_stat', key='streak') }}">
+    <section class="story-stat">
+      <div class="story-stat-inner story-zoom">
+        <div class="story-eyebrow">Momentum</div>
+        <div class="story-stat-value {{ 'pos' if stats.current_streak_type == 'win' else ('neg' if stats.current_streak_type == 'loss' else '') }}" data-count="{{ stats.current_streak }}" data-decimals="0">0</div>
+        <div class="story-stat-label">Current Streak{% if stats.current_streak_type %} &mdash; {{ stats.current_streak_type }}{% endif %}</div>
+        <div class="mini-chart-wrap"><canvas class="mini-chart" data-chart-key="streak-bars"></canvas></div>
+        <div class="story-stat-cta">View full breakdown &rarr;</div>
+      </div>
+    </section>
+  </a>
+
+  <section class="story-overview">
+    <div class="reveal">
+      <div class="story-eyebrow" style="text-align:center;margin-bottom:6px">The Full Picture</div>
+      <h2 class="overview-title">Overview</h2>
+    </div>
+
+    <div class="stats-strip reveal" style="transition-delay:60ms">
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='balance') }}">
+        <div class="stat-label">Account Balance</div>
+        <div class="stat-value {{ 'pos' if stats.total_pnl > 0 else ('neg' if stats.total_pnl < 0 else '') }}">
+          {{ '$%.2f'|format(stats.account_balance) }}
+        </div>
+        <div class="stat-sub">from ${{ '%.2f'|format(stats.starting_balance) }}</div>
+      </a>
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='pnl') }}">
+        <div class="stat-label">Total P&amp;L</div>
+        <div class="stat-value {{ 'pos' if stats.total_pnl > 0 else ('neg' if stats.total_pnl < 0 else '') }}">
+          {{ '$%.2f'|format(stats.total_pnl) }}
+        </div>
+      </a>
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='winrate') }}">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value">{{ '%.0f'|format(stats.win_rate) }}%</div>
+        <div class="wl-bar">
+          {% if stats.wins or stats.losses %}
+          <div class="wl-bar-win" style="flex:{{ stats.wins }}"></div>
+          <div class="wl-bar-loss" style="flex:{{ stats.losses }}"></div>
+          {% endif %}
+        </div>
+      </a>
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='winrate') }}">
+        <div class="stat-label">Wins / Losses</div>
+        <div class="stat-value"><span class="pos">{{ stats.wins }}</span> / <span class="neg">{{ stats.losses }}</span></div>
+        <div class="stat-sub">{{ stats.breakeven }} breakeven</div>
+      </a>
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='trades') }}">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value">{{ stats.total_trades }}</div>
+      </a>
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='days') }}">
+        <div class="stat-label">Days Traded</div>
+        <div class="stat-value">{{ stats.days_traded }}</div>
+      </a>
+      <a class="stat stat-link" href="{{ url_for('journal_stat', key='streak') }}">
+        <div class="stat-label">Current Streak</div>
+        <div class="stat-value {{ 'pos' if stats.current_streak_type == 'win' else ('neg' if stats.current_streak_type == 'loss' else '') }}">{{ stats.current_streak }}</div>
+        <div class="stat-sub">{{ stats.current_streak_type or '-' }}</div>
+      </a>
+    </div>
+
+    <div class="chart-row reveal" style="transition-delay:120ms">
+      <a class="chart-box chart-box-link" href="{{ url_for('journal_stat', key='balance') }}">
+        <h2>Balance Over Time</h2>
+        <canvas id="equityChart"></canvas>
+      </a>
+      <a class="chart-box chart-box-link" href="{{ url_for('journal_stat', key='days') }}">
+        <h2>Daily P&amp;L</h2>
+        <canvas id="dailyPnlChart"></canvas>
+      </a>
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const stats = {{ stats_json|safe }};
+  window.__journalStats = stats;
+</script>
+{% endblock %}

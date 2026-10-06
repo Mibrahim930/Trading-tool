@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}{{ item['headline'] }} - Market Monitor{% endblock %}
+{% block content %}
+  <a href="javascript:history.back()" class="back-link reveal">&lsaquo; Back</a>
+
+  <article class="story">
+    <div class="story-hero reveal">
+      <div class="story-eyebrow">
+        <span>{{ item['source'] }}</span>
+        <span class="dot">&middot;</span>
+        <span>{{ item['published_at']|fmt_time }}</span>
+        {% if item['category'] %}<span class="dot">&middot;</span><span>{{ item['category'] }}</span>{% endif %}
+      </div>
+      <h1 class="story-headline">{{ item['headline'] }}</h1>
+
+      <div class="story-badges">
+        <span class="badge badge-{{ item['impact']|lower }}">{{ item['impact']|upper }} IMPACT</span>
+        <span class="badge badge-{{ item['direction']|lower }}">
+          {% if item['direction']|lower == 'bullish' %}&#9650;{% elif item['direction']|lower == 'bearish' %}&#9660;{% else %}&#9679;{% endif %}
+          {{ item['direction']|upper }}
+        </span>
+        <span class="badge badge-instrument">{{ item['affects']|upper }}</span>
+      </div>
+    </div>
+
+    <div class="story-meters reveal" style="transition-delay:80ms">
+      <div class="meter-block">
+        <div class="meter-label">Market Bias</div>
+        <div class="bias-meter">
+          <div class="bias-meter-track"></div>
+          <div class="bias-meter-marker bias-{{ item['direction']|lower }}"></div>
+        </div>
+        <div class="bias-meter-labels">
+          <span>Bearish</span><span>Neutral</span><span>Bullish</span>
+        </div>
+      </div>
+      <div class="meter-block">
+        <div class="meter-label">Expected Impact</div>
+        <div class="impact-dots">
+          <span class="impact-dot {{ 'filled impact-low' if item['impact']|lower in ('low','medium','high') }}"></span>
+          <span class="impact-dot {{ 'filled impact-medium' if item['impact']|lower in ('medium','high') }}"></span>
+          <span class="impact-dot {{ 'filled impact-high' if item['impact']|lower == 'high' }}"></span>
+        </div>
+        <div class="bias-meter-labels">
+          <span>Low</span><span>Medium</span><span>High</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-body reveal" style="transition-delay:140ms">
+      <section class="story-section">
+        <h2>Why It Matters</h2>
+        <p class="story-text">{{ item['reason'] or 'No AI analysis available for this item.' }}</p>
+      </section>
+
+      {% if item['summary'] %}
+      <section class="story-section">
+        <h2>Summary</h2>
+        <p class="story-text dim">{{ item['summary'] }}</p>
+      </section>
+      {% endif %}
+
+      <section class="story-section">
+        <h2>At a Glance</h2>
+        <div class="glance-grid">
+          <div class="glance-item">
+            <div class="glance-label">Affects</div>
+            <div class="glance-value">{{ item['affects']|upper }}</div>
+          </div>
+          <div class="glance-item">
+            <div class="glance-label">Direction</div>
+            <div class="glance-value badge-text-{{ item['direction']|lower }}">{{ item['direction']|upper }}</div>
+          </div>
+          <div class="glance-item">
+            <div class="glance-label">Impact</div>
+            <div class="glance-value badge-text-{{ item['impact']|lower }}">{{ item['impact']|upper }}</div>
+          </div>
+          <div class="glance-item">
+            <div class="glance-label">Relevant</div>
+            <div class="glance-value">{{ 'Yes' if item['relevant'] else 'No' }}</div>
+          </div>
+          <div class="glance-item">
+            <div class="glance-label">Published</div>
+            <div class="glance-value">{{ item['published_at']|fmt_time }}</div>
+          </div>
+          <div class="glance-item">
+            <div class="glance-label">Scored</div>
+            <div class="glance-value">{{ item['scored_at']|fmt_time }}</div>
+          </div>
+        </div>
+      </section>
+
+      {% if item['url'] %}
+      <a href="{{ item['url'] }}" target="_blank" rel="noopener" class="story-cta">Read original article &rarr;</a>
+      {% endif %}
+    </div>
+  </article>
+
+  <nav class="story-pager reveal" style="transition-delay:200ms">
+    {% if prev_item %}
+    <a href="{{ url_for('news_detail', news_id=prev_item['id']) }}" class="pager-link pager-prev">
+      <span class="pager-dir">&lsaquo; Newer</span>
+      <span class="pager-title">{{ prev_item['headline'] }}</span>
+    </a>
+    {% else %}<div></div>{% endif %}
+    {% if next_item %}
+    <a href="{{ url_for('news_detail', news_id=next_item['id']) }}" class="pager-link pager-next">
+      <span class="pager-dir">Older &rsaquo;</span>
+      <span class="pager-title">{{ next_item['headline'] }}</span>
+    </a>
+    {% endif %}
+  </nav>
+{% endblock %}

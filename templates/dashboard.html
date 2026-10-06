@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Market Monitor{% endblock %}
+{% block content %}
+  <div class="page-header reveal">
+    <div class="page-header-text">
+      <h1>News Dashboard</h1>
+      <p class="page-subtitle">Live-scored headlines for ES and NQ futures. Tap any headline for the full breakdown.</p>
+    </div>
+    <span class="hint">Auto-refresh 30s &middot; latest 100 scored &middot; <a href="{{ url_for('search') }}">search all &rarr;</a></span>
+  </div>
+  <table class="reveal news-table" style="transition-delay:80ms">
+    <thead>
+      <tr>
+        <th style="width:130px">Published</th>
+        <th style="width:50px">Impact</th>
+        <th style="width:70px">Direction</th>
+        <th style="width:50px">Affects</th>
+        <th>Headline</th>
+        <th style="width:38%">Reason</th>
+        <th style="width:16px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in news %}
+      <tr class="clickable-row {{ 'irrelevant' if not item['relevant'] }}" data-href="{{ url_for('news_detail', news_id=item['id']) }}" tabindex="0">
+        <td class="nowrap">{{ item['published_at']|fmt_time }}</td>
+        <td><span class="tag tag-{{ item['impact']|lower }}">{{ item['impact']|upper }}</span></td>
+        <td><span class="tag tag-{{ item['direction']|lower }}">{{ item['direction']|upper }}</span></td>
+        <td><span class="instrument">{{ item['affects']|upper }}</span></td>
+        <td class="headline-cell">{{ item['headline'] }}</td>
+        <td class="dim-cell">{{ item['reason'] }}</td>
+        <td class="row-chevron">&rsaquo;</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7">No scored news yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <meta http-equiv="refresh" content="30">
+{% endblock %}

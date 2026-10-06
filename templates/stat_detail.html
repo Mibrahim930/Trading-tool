@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ detail.title }} - Trade Journal{% endblock %}
+{% block content %}
+  <a href="{{ url_for('journal') }}" class="back-link reveal">&lsaquo; Back to Trade Journal</a>
+
+  <div class="detail-hero reveal">
+    <div class="story-eyebrow">{{ detail.eyebrow }}</div>
+    <h1 class="detail-title">{{ detail.title }}</h1>
+    <p class="page-subtitle detail-subtitle">{{ detail.subtitle }}</p>
+    <div class="detail-hero-value {{ detail.hero_class }}">{{ detail.hero_value }}</div>
+  </div>
+
+  <div class="stats-strip reveal" style="transition-delay:60ms">
+    {% for card in detail.stat_cards %}
+    <div class="stat">
+      <div class="stat-label">{{ card.label }}</div>
+      <div class="stat-value {{ card.cls }}">{{ card.value }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="chart-row reveal" style="transition-delay:120ms">
+    {% for chart in detail.charts %}
+    <div class="chart-box chart-box-large">
+      <h2>{{ chart.title }}</h2>
+      <canvas id="chart-{{ chart.id }}"></canvas>
+    </div>
+    {% endfor %}
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script>
+    window.__statDetail = {{ detail_json|safe }};
+  </script>
+{% endblock %}
